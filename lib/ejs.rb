@@ -8,13 +8,13 @@ module EJS
   class << self
     attr_accessor :evaluation_pattern
     attr_accessor :interpolation_pattern
+    attr_accessor :raw_interpolation_pattern
 
-    # Compiles an EJS template to a JavaScript function. The compiled
-    # function takes an optional argument, an object specifying local
-    # variables in the template.  You can optionally pass the
-    # `:evaluation_pattern` and `:interpolation_pattern` options to
-    # `compile` if you want to specify a different tag syntax for the
-    # template.
+    # Compiles an EJS template to a JavaScript function. The compiled function
+    # takes an optional argument, an object specifying local variables in the
+    # template.  You can optionally pass the `:evaluation_pattern`,
+    # `:interpolation_pattern`, and `:raw_interpolation_pattern` options to
+    # `compile` if you want to specify a different tag syntax for the template.
     #
     #     EJS.compile("Hello <%= name %>")
     #     # => "function(obj){...}"
@@ -24,10 +24,12 @@ module EJS
 
       escape_quotes!(source)
       replace_interpolation_tags!(source, options)
+      replace_raw_interpolation_tags!(source, options)
       replace_evaluation_tags!(source, options)
       escape_whitespace!(source)
 
-      "function(obj){var __p=[],print=function(){__p.push.apply(__p,arguments);};" +
+      "function(obj){var __p=[],print=function(){__p.push.apply(__p,arguments);}," +
+        "__e=function(str){return (str||'').replace(/&(?!\\w+;|#\\d+;|#x[\\da-f]+;)/gi,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\"/g,'&quot;').replace(/'/g,'&#x27;').replace(/\\//g,'&#x2F;');};" +
         "with(obj||{}){__p.push('#{source}');}return __p.join('');}"
     end
 
@@ -59,6 +61,12 @@ module EJS
 
       def replace_interpolation_tags!(source, options)
         source.gsub!(options[:interpolation_pattern] || interpolation_pattern) do
+          "',__e(" + $1.gsub(/\\'/, "'") + "),'"
+        end
+      end
+
+      def replace_raw_interpolation_tags!(source, options)
+        source.gsub!(options[:raw_interpolation_pattern] || raw_interpolation_pattern) do
           "'," + $1.gsub(/\\'/, "'") + ",'"
         end
       end
@@ -72,4 +80,5 @@ module EJS
 
   self.evaluation_pattern = /<%([\s\S]+?)%>/
   self.interpolation_pattern = /<%=([\s\S]+?)%>/
+  self.raw_interpolation_pattern = /<%!=([\s\S]+?)%>/
 end

@@ -4,13 +4,15 @@ require "test/unit"
 FUNCTION_PATTERN = /^function\s*\(.*?\)\s*\{(.*?)\}$/
 
 BRACE_SYNTAX = {
-  :evaluation_pattern    => /\{\{([\s\S]+?)\}\}/,
-  :interpolation_pattern => /\{\{=([\s\S]+?)\}\}/
+  :evaluation_pattern        => /\{\{([\s\S]+?)\}\}/,
+  :interpolation_pattern     => /\{\{=([\s\S]+?)\}\}/,
+  :raw_interpolation_pattern => /\{\{!=([\s\S]+?)\}\}/
 }
 
 QUESTION_MARK_SYNTAX = {
-  :evaluation_pattern    => /<\?([\s\S]+?)\?>/,
-  :interpolation_pattern => /<\?=([\s\S]+?)\?>/
+  :evaluation_pattern        => /<\?([\s\S]+?)\?>/,
+  :interpolation_pattern     => /<\?=([\s\S]+?)\?>/,
+  :raw_interpolation_pattern => /<\?!=([\s\S]+?)\?>/
 }
 
 module TestHelper
@@ -78,6 +80,16 @@ class EJSEvaluationTest < Test::Unit::TestCase
   test "backslashes" do
     template = "<%= thing %> is \\ridanculous"
     assert_equal "This is \\ridanculous", EJS.evaluate(template, :thing => "This")
+  end
+
+  test "escaped vs raw" do
+    template = "<%= thing %> <%!= thing %>"
+    assert_equal "&amp;&lt; &<", EJS.evaluate(template, :thing => "&<")
+  end
+
+  test "null interpolation" do
+    template = "x<%= null %>"
+    assert_equal "x", EJS.evaluate(template)
   end
 
   test "iteration" do
