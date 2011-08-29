@@ -29,7 +29,7 @@ module EJS
       escape_whitespace!(source)
 
       "function(obj){var __p=[],print=function(){__p.push.apply(__p,arguments);}," +
-        "__e=function(str){return (str||'').replace(/&(?!\\w+;|#\\d+;|#x[\\da-f]+;)/gi,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\"/g,'&quot;').replace(/'/g,'&#x27;').replace(/\\//g,'&#x2F;');};" +
+        "__e=function(str){return (str||'').toString().replace(/&(?!\\w+;|#\\d+;|#x[\\da-f]+;)/gi,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\"/g,'&quot;').replace(/'/g,'&#x27;').replace(/\\//g,'&#x2F;');};" +
         "with(obj||{}){__p.push('#{source}');}return __p.join('');}"
     end
 
